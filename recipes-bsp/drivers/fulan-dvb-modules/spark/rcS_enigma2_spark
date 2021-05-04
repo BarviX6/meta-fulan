@@ -1,0 +1,248 @@
+#!/usr/bin/sh
+#Version 190125.1
+
+echo "Spark Enigma2"
+
+modprobe e2_proc
+
+echo "Init frontpanel"
+modprobe aotom paramDebug=0
+modprobe simu_button
+if [ -e /lib/modules/2.6.32.71_stm24_0217/extra/encrypt ]; then
+   modprobe encrypt
+fi
+
+if [ -e /var/etc/.firstboot ]; then
+   echo "1MIN" >/dev/vfd
+   echo "WAIT 1 minute"
+   rm /var/etc/.firstboot
+   sleep 1
+   touch /dev/.devfsd
+else
+   echo "Ld10" > /dev/vfd
+   echo "[rcS] LOAD 10"
+fi
+
+if [ -e /etc/init.d/mountvirtfs ]; then
+   /etc/init.d/mountvirtfs start
+fi
+if [ -e /etc/init.d/portmap ]; then
+   /etc/init.d/portmap start
+fi
+if [ -e /etc/init.d/autofs ]; then
+   /etc/init.d/autofs start
+fi
+
+echo "[rcS] Starting DEBUG Interface"
+if [ -e /etc/init.d/mountall ]; then
+   /etc/init.d/mountall start
+fi
+
+echo "[rcS] Init stmfb (LOAD 9)"
+echo "Ld 9" > /dev/vfd
+modprobe stmcore-display-sti7111
+
+if grep -q "config.av.videoport=Scart" /etc/enigma2/settings; then
+  modprobe stmfb display0=720x576i-32@50:15m:pal:rgb:rgb; #SCART
+else
+  modprobe stmfb display0=1280x720-32@50:16m:pal:rgb:rgb; #HDMI
+fi
+
+echo "[rcS] Loading modules"
+
+echo "[rcS] Load audio firmware (LOAD 8)"
+echo "Ld 8" > /dev/vfd
+dtsdown=`cat /etc/enigma2/settings | grep systemoptions.dtsdownmix | cut -d "=" -f2`
+if [ ! $dtsdown ] && [ -e /boot/audio_dts.elf ]; then
+   /usr/bin/ustslave /dev/st231-1 /boot/audio_dts.elf > /dev/null
+else
+   /usr/bin/ustslave /dev/st231-1 /boot/audio.elf > /dev/null
+fi
+
+echo "[rcS] Load video firmware (LOAD 7)"
+echo "Ld 7" > /dev/vfd
+/usr/bin/ustslave /dev/st231-0 /boot/video.elf > /dev/null
+
+echo "[rcS] Init embx (LOAD 6)"
+echo "Ld 6" > /dev/vfd
+modprobe embxshell
+modprobe embxmailbox mailbox0=0xfe211000:136:set2 mailbox1=0xfe212000:0
+modprobe embxshm mailbox0=shm:0:7:0x60000000:0:256:256:0:512:0x40000000:0x10000000
+modprobe mme_host transport0=shm
+
+echo "[rcS] Init AVS (LOAD 5)"
+echo "Ld 5" > /dev/vfd
+modprobe avs type=avs_none
+
+player=`cat /proc/stb/player/version | awk '{ print substr( $0, length($0) - 2, length($0) ) }'`
+echo "[rcS] Init player $player (LOAD 4)"
+echo "Ld 4" > /dev/vfd
+
+modprobe mmelog
+modprobe ksound
+modprobe p2div64
+modprobe stm_v4l2
+modprobe stmvout
+modprobe stmvbi
+modprobe pseudocard
+
+modprobe stv090x
+
+modprobe pti waitMS=20 videoMem=4096
+if [ $? -ne 0 ]; then
+   modprobe pti
+   echo "[rcS] Simple pti"
+else
+   echo "[rcS] Full feature pti"
+fi
+modprobe stm_monitor
+modprobe stmsysfs
+modprobe stmdvb
+
+echo "[rcS] LOAD 3"
+echo "Ld 3" > /dev/vfd
+#modprobe player2 discardlateframe=0
+modprobe player2
+modprobe sth264pp
+modprobe stmalloc
+modprobe platform
+modprobe silencegen
+
+modprobe smartcard
+
+echo "[rcS] Init HDMI-CEC"
+modprobe cec activemode=1
+
+modprobe bpamem
+mknod /dev/bpamem c 153 0
+
+if [ -e /usr/share/bootlogo.mvi ]; then
+   showiframe -p /usr/share/bootlogo.mvi &
+fi
+stfbcontrol a 0
+
+echo "[rcS] Init lircd (LOAD 2)"
+echo "Ld 2" > /dev/vfd
+/usr/bin/lircd
+rm -rf /dev/rc
+mknod /dev/rc c 147 1
+/usr/bin/evremote2 10 120 &
+
+echo "[rcS] Init smartcard cardreader"
+mknod /dev/sci0 c 169 0
+mknod /dev/sci1 c 169 1
+
+stfbcontrol a 255
+
+#wlan=`cat /etc/enigma2/settings | grep systemoptions.wlan | cut -d "=" -f2`
+wlan=
+if [ ! $wlan ] || [ ! -e /lib/modules/2.6.32.71_stm24_0217/extra/$wlan ]; then
+   echo "[rcS] No WLAN"
+else
+   modprobe $wlan
+   echo "[rcS] $wlan WLAN"
+fi
+
+if [ -e /lib/modules/2.6.32.71_stm24_0217/extra/ntfs ]; then
+   modprobe ntfs
+fi
+
+if [ -e /lib/modules/2.6.32.71_stm24_0217/extra/cifs ]; then
+   modprobe cifs
+fi
+
+echo "[rcS] Init FTP (LOAD 1)"
+echo "Ld 1" > /dev/vfd
+/etc/init.d/vsftpd start
+/usr/sbin/inetd
+
+NFS=`grep -c nfs /proc/cmdline`
+if [ "$NFS" -eq "1" ]; then
+   echo "Booting from nfs, don't set network"
+else
+   if [ -e /etc/network/interfaces ]; then
+      ip addr flush eth0
+      /etc/init.d/networking stop
+      DHCP=`grep -c 'iface eth0 inet dhcp' /etc/network/interfaces`
+      if [ "$DHCP" -eq "1" ]; then
+         echo "[rcS] Starting DHCP on eth0"
+         /etc/init.d/udhcpc start
+      fi
+      /etc/init.d/networking start &
+   fi
+fi
+#Allow network to wake up and initialize
+sleep 2
+
+# Handle SWAPPART and RECORD labels and USB devices
+if [ -e /usr/sbin/amount.sh ]; then
+   (sleep 20; /usr/sbin/amount.sh) &
+fi
+
+# Start automount
+if [ -e /etc/init.d/automount ]; then
+   python /etc/init.d/automount &
+fi
+
+# Do own extras
+if [ -e /etc/ownscript.sh ]; then
+   /etc/ownscript.sh &
+fi
+
+echo "[rcS] Start Enigma2"
+echo "StE2" > /dev/vfd
+
+until false
+do
+   echo "[rcS] Entering E2 main loop"
+   if [ -e /usr/share/backdrop.mvi ]; then
+      showiframe -p /usr/share/backdrop.mvi
+   fi
+   /usr/bin/enigma2
+   rtv=$?
+   echo "[rcS] E2 ended <- RTV:" $rtv
+   case "$rtv" in
+      0)  echo "[rcS] E2 ERROR"
+          echo "E2Er" > /dev/vfd
+          init 6;;
+      1)  echo "[rcS] SHUTDOWN"
+          echo "Shdn" > /dev/vfd
+          if [ -e /usr/share/shutdown.mvi ]; then
+             showiframe -p /usr/share/shutdown.mvi
+          fi
+          init 0;;
+      2)  echo "[rcS] REBOOT"
+          echo "rEbt" > /dev/vfd
+          init 6;;
+      3)  echo "[rcS] E2 RESTART"
+          echo "0" > /proc/progress
+          if [ -e /usr/share/backdrop.mvi ]; then
+             showiframe -p /usr/share/backdrop.mvi
+          else
+             showiframe -p /usr/share/bootlogo.mvi
+          fi;;
+      10) echo "[rcS] SPARK RESTART"
+          echo "SPrK" > /dev/vfd
+          modprobe i2s
+          if [ ! -f /etc/fw_env.config ]; then
+             echo "fw_env.config not found - will create it"
+             echo '/dev/mtd7 0x000A0000 0x00020000 0x20000' > /etc/fw_env.config
+          fi
+          var=`fw_printenv | grep 'bootargs_spark='` ; fw_setenv bootargs ${var#*=}
+          var=`fw_printenv | grep 'bootcmd_spark='` ; fw_setenv bootcmd ${var#*=}
+          var=`fw_printenv | grep 'boot_system_spark='` ; fw_setenv boot_system ${var#*=}
+          var=`fw_printenv | grep 'userfs_base_spark='` ; fw_setenv userfs_base ${var#*=}
+          var=`fw_printenv | grep 'userfs_len_spark='` ; fw_setenv userfs_len ${var#*=}
+          var=`fw_printenv | grep 'kernel_base_spark='` ; fw_setenv kernel_base ${var#*=}
+          var=`fw_printenv | grep 'kernel_name_spark='` ; fw_setenv kernel_name ${var#*=}
+          var=`fw_printenv | grep 'userfs_name_spark='` ; fw_setenv userfs_name ${var#*=} 
+          var=`fw_printenv | grep 'loadu_userfs_spark='` ; fw_setenv loadu_userfs ${var#*=}
+          var=`fw_printenv | grep 'loadu_kernel_spark='` ; fw_setenv loadu_kernel ${var#*=}
+          var=`fw_printenv | grep 'kernel_len_spark='` ; fw_setenv kernel_len ${var#*=}
+          sync
+          init 6;;
+      *)  echo "[rcS] ERROR"
+          echo "Err" > /dev/vfd
+          init 6;;
+   esac
+done

@@ -7,7 +7,7 @@
 +		# [ "$module" == "cec" ] && [ ! `grep 'hdmicec.enabled=true' /etc/enigma2/settings` ] && args="activemode=1" # Load cec in activemode if disabled in enigma2
  		eval "$LOAD_MODULE $module $args >/dev/null 2>&1"
  		loaded_modules="${loaded_modules}${module} "
-+		[ "$module" == "stmfb" ] && echo "LOAD" > /dev/dbox/oled0
++		[ "$module" == "aotom" ] && mknod -m 0660 /dev/vfd c 147 0 && echo "LOAD" > /dev/vfd
 +		[ "$module" == "zram" ] && echo "16777216" > /sys/block/zram0/disksize # Use 16Mb for swap in ram
  	done
  }
@@ -31,3 +31,4 @@
 +# fi
 +
  exit 0
+

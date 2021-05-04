@@ -1,0 +1,21 @@
+From d9964bbe84143bc7fa7283e132072ea6dafcc28c Mon Sep 17 00:00:00 2001
+From: Persian Prince <persianpros@yahoo.com>
+Date: Sun, 19 Jan 2020 11:03:42 +0100
+
+---
+ source3/configure | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/source3/configure b/source3/configure
+index 7684000..02ce5ce 100755
+--- a/source3/configure
++++ b/source3/configure
+@@ -13293,7 +13293,7 @@ if test x"$libreplace_cv_HAVE_GETADDRINFO" = x"yes"; then
+ 	# getaddrinfo is broken on some AIX systems
+ 	# see bug 5910, use our replacements if we detect
+ 	# a broken system.
+-	if test "$cross_compiling" = yes; then :
++	if test "$cross_compiling" = foo; then :
+   { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+ $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+ as_fn_error $? "cannot run test program while cross compiling

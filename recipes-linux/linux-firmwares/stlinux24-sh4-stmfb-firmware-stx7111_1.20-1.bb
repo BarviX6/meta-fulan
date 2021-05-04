@@ -12,5 +12,7 @@ do_install() {
         install -d ${D}${base_libdir}/firmware
         install -m 0644 ${S}/lib/firmware/component_7111* ${D}${base_libdir}/firmware
 	ln -sf ${base_libdir}/firmware/component_7111_mb618.fw ${D}${base_libdir}/firmware/component.fw
+        install -m 0644 ${S}${base_libdir}/firmware/fdvo0_7105.fw ${D}${base_libdir}/firmware/fdvo0.fw
+        touch ${D}${base_libdir}/firmware/downmix.fw
 }
  

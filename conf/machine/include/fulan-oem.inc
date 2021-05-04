@@ -17,7 +17,7 @@ TARGET_ARCH = "sh4"
 DEFAULTTUNE = "sh4"
 
 GCCVERSION = "4.9.4"
-GLIBCVERSION= "2.25"
+GLIBCVERSION = "2.23"
 
 HOSTTOOLS_NONFATAL += "whoami"
 
@@ -29,14 +29,13 @@ PREFERRED_VERSION_samba = "3.%"
 PREFERRED_PROVIDER_lirc = "stlirc"
 PREFERRED_PROVIDER_virtual/egl = "libstgles"
 PREFERRED_PROVIDER_virtual/libgles1 = "libstgles"
-PREFERRED_PROVIDER_virtual/enigma2-mediaservice ?= "enigma2-plugin-systemplugins-servicesh4"
+PREFERRED_PROVIDER_virtual/enigma2-mediaservice ?= "enigma2-plugin-systemplugins-servicemp3"
 
 SERIAL_CONSOLE = "115200 ttyAS0"
 
 DVBPROVIDER = "kernel"
 
-MACHINE_FEATURES += "libeplayer"
-MACHINE_FEATURES += "3dtv alsa ext2 usbhost serial hdmicec switchoff singlecore legacykernel fulan textlcd sh4booster no-nmap omb skins1080 directfb"
+MACHINE_FEATURES += "3dtv alsa ext2 usbhost serial hdmicec switchoff singlecore legacykernel fulan textlcd sh4booster no-nmap omb skins1080 directfb wlan"
 DISTRO_FEATURES_append += "gtk-directfb libsigc2"
 
 KERNEL_IMAGETYPE = "uImage"
@@ -86,7 +85,6 @@ IMAGE_CMD_tar_prepend = "\
 	
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS += "\
     stlinux24-sh4-stx7111-fdma-firmware \
-    libmme-host \
     libmme-image \
     stslave-fw \
     ustslave \
@@ -100,10 +98,16 @@ MACHINE_ESSENTIAL_EXTRA_RDEPENDS += "\
     "
 
 MACHINE_EXTRA_RRECOMMENDS += "\
-    enigma2-plugin-systemplugins-servicesh4 \
-    enigma2-plugin-systemplugins-sparkvfdcontrol \
-    enigma2-plugin-systemplugins-sh4boostercontrol \
+    enigma2-plugin-systemplugins-servicemp3 \
+    enigma2-plugin-systemplugins-serviceapp \
     enigma2-plugin-systemplugins-sh4osdadjustment \
+    "
+
+MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += "\
+	kernel-module-mt7601usta \
+	firmware-mt7601u \
+	kernel-module-extrawlan-rt3070 \
+	firmware-rt2870 \
     "
 
 EXTRA_IMAGEDEPENDS += "\
@@ -113,7 +117,6 @@ EXTRA_IMAGEDEPENDS += "\
     "
 
 MACHINE_EXTRA_RDEPENDS += "\
-    enigma2-plugin-systemplugins-sparkvfdcontrol \
     libpcre \
     aio-grab \
     "

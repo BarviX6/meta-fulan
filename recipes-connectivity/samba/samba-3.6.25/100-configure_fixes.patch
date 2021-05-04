@@ -1,0 +1,24 @@
+From 12d74cebe8862f34ed1febfb7a272ecc381688f8 Mon Sep 17 00:00:00 2001
+From: Persian Prince <persianpros@yahoo.com>
+Date: Sun, 19 Jan 2020 11:03:42 +0100
+
+---
+ source3/configure | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/source3/configure b/source3/configure
+index 100974e..503078b 100755
+--- a/source3/configure
++++ b/source3/configure
+@@ -11572,10 +11572,7 @@ if ${libreplace_cv_READDIR_GETDENTS+:} false; then :
+ else
+ 
+ 	if test "$cross_compiling" = yes; then :
+-  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+-as_fn_error $? "cannot run test program while cross compiling
+-See \`config.log' for more details" "$LINENO" 5; }
++		$as_echo "assuming valid getaddrinfo without bug 5910" >&2
+ else
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
