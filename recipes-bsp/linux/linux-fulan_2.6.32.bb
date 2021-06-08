@@ -4,13 +4,13 @@ SECTION = "kernel"
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 KV = "2.6.32"
-SRCDATE = "20160701"
+SRCDATE = "20210606"
 
 COMPATIBLE_MACHINE = "(spark|spark7162)"
 
 LIC_FILES_CHKSUM = "file://COPYING;md5=d7810fab7487fb0aad327b76f1be7cd7"
 
-MACHINE_KERNEL_PR_append = ".3"
+MACHINE_KERNEL_PR_append = ".4"
 
 inherit kernel machine_kernel_pr
 
@@ -35,11 +35,11 @@ RPROVIDES_${KERNEL_PACKAGE_NAME}-base = "kernel-${KERNEL_VERSION}"
 RPROVIDES_kernel-image = "kernel-image-${KERNEL_VERSION}"
 
 STM_PATCH_STR = "0217"
-LINUX_VERSION = "2.6.32.71"
+LINUX_VERSION = "2.6.32.81"
 SRCREV = "${AUTOREV}"
 # SRCREV = "3ec500f4212f9e4b4d2537c8be5ea32ebf68c43b"
 
-SRC_URI = "git://github.com/kueken/linux-sh4.git;protocol=git;branch=stmicro-1 \
+SRC_URI = "git://github.com/BarviX6/linux-sh4.git;protocol=git;branch=stmicro-1 \
     file://linux-sh4-stmmac_stm24_${STM_PATCH_STR}.patch;patch=1 \
     file://linux-sh4-lmb_stm24_${STM_PATCH_STR}.patch;patch=1 \
     file://defconfig \
@@ -53,8 +53,6 @@ SRC_URI_append_spark7162 = " \
 SRC_URI_append_spark = " \
     file://linux-sh4-spark_setup_stm24_${STM_PATCH_STR}.patch;patch=1 \
     file://linux-sh4-lirc_stm_stm24_${STM_PATCH_STR}.patch;patch=1 \
-    file://linux-sh4-spark-af901x-NXP-TDA18218.patch;patch=1 \
-    file://linux-sh4-spark-dvb-as102.patch;patch=1 \
 "
 
 S = "${WORKDIR}/git"
